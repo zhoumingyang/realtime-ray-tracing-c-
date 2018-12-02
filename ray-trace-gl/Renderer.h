@@ -19,6 +19,7 @@ private:
 	Matrix modelviewProjection;
 	Hitable* selectedObject;
 	void setUniforms();
+	int material;
 public:
 	struct Uniforms {
 		Vector cubeMin;
@@ -37,7 +38,10 @@ public:
 	GLuint getVertexAttribute() const;
 	Matrix getModelViewProjection() const;
 	void setModelViewProjection(const Matrix& mvp);
-	Hitable getSelectedObject() const;
-	void setSelectedObject(Hitable& object);
+	Hitable* getSelectedObject() const;
+	void setSelectedObject(Hitable* object);
+	void setMaterial(int _material);
+	int getMaterial() const;
+	PathTracer* getPathTracer() const;
 };
 #endif // !RENDERER_H

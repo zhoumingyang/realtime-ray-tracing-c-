@@ -186,7 +186,7 @@ std::string makeShadow(vector<Hitable*> objects) {
 	return shadowFunction;
 }
 
-std::string makeCalculateColor(vector<Hitable*> objects) {
+std::string makeCalculateColor(vector<Hitable*> objects, int material) {
 	std::string calculateColor = "";
 	calculateColor = calculateColor +
 		"vec3 calculateColor(vec3 origin, vec3 ray, vec3 light) { \n" +
@@ -220,7 +220,16 @@ std::string makeCalculateColor(vector<Hitable*> objects) {
 	for (int i = 0; i < objects.size(); i++) {
 		calculateColor += objects[i]->getNormalCalculationCode();
 	}
-	calculateColor += newDiffuseRay;
+
+	if (2 == material) {
+		calculateColor += newReflectiveRay;
+	}
+	else if (3 == material) {
+		calculateColor += newGlossyRay;
+	}
+	else {
+		calculateColor += newDiffuseRay;
+	}
 	calculateColor += "	} \n";
 
 	calculateColor += "	vec3 toLight = light - hit; \n";
@@ -230,8 +239,8 @@ std::string makeCalculateColor(vector<Hitable*> objects) {
 	calculateColor += "	accumulatedColor += colorMask * (0.5 * diffuse * shadowIntensity); \n";
 	calculateColor += "	accumulatedColor += colorMask * specularHighlight * shadowIntensity; \n";
 	calculateColor += "	origin = hit; \n";
-	calculateColor += "	testVec = hit; \n";
-	calculateColor += "	testValue = tSphere0; \n";
+	//calculateColor += "	testVec = hit; \n";
+	//calculateColor += "	testValue = tSphere0; \n";
 	calculateColor += "	} \n";
 	calculateColor += "	return accumulatedColor; \n";
 	calculateColor += "} \n";
@@ -267,7 +276,7 @@ std::string testMakeMain() {
 		"}";
 }
 
-std::string makeTracerFragmentSource(vector<Hitable*> objects) {
+std::string makeTracerFragmentSource(vector<Hitable*> objects, int material) {
 	std::string tmp = tracerFragmentSourceHeader;
 	for (int i = 0; i < objects.size(); i++) {
 		tmp += objects[i]->getGlobalCode();
@@ -281,7 +290,7 @@ std::string makeTracerFragmentSource(vector<Hitable*> objects) {
 	tmp += uniformlyRandomDirectionSource;
 	tmp += uniformlyRandomVectorSource;
 	tmp += makeShadow(objects);
-	tmp += makeCalculateColor(objects);
+	tmp += makeCalculateColor(objects, material);
 	tmp += makeMain();
 	return tmp;
 }

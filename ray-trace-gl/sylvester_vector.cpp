@@ -256,7 +256,7 @@ float Vector::min() const {
 
 Vector Vector::min(const Vector& a, const Vector& b) const {
 	vector<float> _a = a.allElements();
-	vector<float> _b = a.allElements();
+	vector<float> _b = b.allElements();
 	if (_a.size() != _b.size()) {
 		return Vector();
 	}
@@ -270,7 +270,7 @@ Vector Vector::min(const Vector& a, const Vector& b) const {
 
 Vector Vector::max(const Vector& a, const Vector& b) const {
 	vector<float> _a = a.allElements();
-	vector<float> _b = a.allElements();
+	vector<float> _b = b.allElements();
 	if (_a.size() != _b.size()) {
 		return Vector();
 	}

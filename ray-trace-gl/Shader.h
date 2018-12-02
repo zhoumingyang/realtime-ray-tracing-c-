@@ -34,9 +34,9 @@ extern std::string newGlossyRay;
 extern std::string yellowBlueCornellBox;
 extern std::string redGreenCornellBox;
 std::string makeShadow(vector<Hitable*> objects);
-std::string makeCalculateColor(vector<Hitable*> objects);
+std::string makeCalculateColor(vector<Hitable*> objects, int material = 1);
 std::string makeMain();
-extern std::string makeTracerFragmentSource(vector<Hitable*> objects);
+extern std::string makeTracerFragmentSource(vector<Hitable*> objects, int material = 1);
 GLuint compileSource(const std::string& source, GLuint type);
 extern GLuint compileShader(const std::string& vertexSource, const std::string& fragmentSource);
 #endif // !SHADER_H

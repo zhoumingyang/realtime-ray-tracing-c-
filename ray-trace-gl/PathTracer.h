@@ -17,7 +17,6 @@ private:
 	GLuint tracerVertexAttribute;
 	int sampleCount;
 	vector<Hitable*> objects;
-	Vector getEyeRay(const Matrix& matrix, const float& x, const float& y);
 	void setUniforms();
 public:
 	struct Uniforms {
@@ -30,8 +29,10 @@ public:
 		float timeSinceStar;
 		float textureWeight;
 	}uniforms;
+	int material;
 	PathTracer();
 	~PathTracer();
+	Vector getEyeRay(const Matrix& matrix, const float& x, const float& y);
 	void setObjects(vector<Hitable*> _objects);
 	void setObjects(Hitable* _objects[], int n);
 	void update(const Matrix& matrix, float timeSinceStart);
@@ -43,5 +44,7 @@ public:
 	GLuint getRenderVertexAttribute() const;
 	GLuint getTracerVertexAttribute() const;
 	int getSampleCount() const;
+	void setMaterial(int _material);
+	int getMaterial() const;
 };
 #endif // !PATHTRACER_H

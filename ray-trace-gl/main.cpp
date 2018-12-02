@@ -10,23 +10,21 @@
 #include "Renderer.h"
 #include <iostream>
 #include <windows.h>
+#include "Scene.h"
 
-int nextObjectId = 0;
+#define MATERIALDIFFUSE 1
+#define MATERIALMIRROR 2
+#define MATERIALGLOSSY 3
+#define SCENECHANGE 4
+#define SCENESPHERECOLUMN 1
+#define SCENESTACKS 2
+#define SCENETABLECHAIR 3
+
+int material = MATERIALDIFFUSE;
 vector<Hitable*> objects;
 Vector eye(0, 0, 2.5);
 Renderer* render;
 DWORD now, start;
-
-void dislpay(float e, int i) {
-	cout << e << " " << i << endl;
-}
-
-void makeSphereColumn(vector<Hitable*>& objects) {
-	objects.push_back(new Sphere(Vector(0.0, 0.75, 0.0), 0.25, to_string(nextObjectId++)));
-	objects.push_back(new Sphere(Vector(0.0, 0.25, 0.0), 0.25, to_string(nextObjectId++)));
-	objects.push_back(new Sphere(Vector(0.0, -0.25, 0.0), 0.25, to_string(nextObjectId++)));
-	objects.push_back(new Sphere(Vector(0.0, -0.75, 0.0), 0.25, to_string(nextObjectId++)));
-}
 
 Matrix makeLookAt(float ex, float ey, float ez,
 	float cx, float cy, float cz,
@@ -108,11 +106,105 @@ void RenderScene() {
 	Matrix modelviewProjection = projection.multiply(modelview);
 	now = GetTickCount();
 	float diff = (now - start) * 0.001;
-	//diff = 8.824;
 	render->update(modelviewProjection, diff);
 	render->render();
 	glutSwapBuffers();
 	glutPostRedisplay();
+}
+
+void processSceneMenuEvents(int option) {
+	if (objects.size() > 0) {
+		for (int i = 0; i < objects.size(); i++) {
+			delete objects[i];
+		}
+		objects = vector<Hitable*>();
+		objects.push_back(new Light());
+	}
+	switch (option) {
+	case SCENESPHERECOLUMN:
+		makeSphereColumn(objects);
+		break;
+	case SCENESTACKS:
+		makeStacks(objects);
+		break;
+	case SCENETABLECHAIR:
+		makeTableAndChair(objects);
+		break;
+	default:
+		makeSphereColumn(objects);
+		break;
+	}
+	if (objects.size()) {
+		render->setObjects(objects);
+	}
+
+}
+
+void processMenuEvents(int option) {
+	switch (option) {
+	case MATERIALDIFFUSE:
+		render->setMaterial(MATERIALDIFFUSE);
+		break;
+	case MATERIALMIRROR:
+		render->setMaterial(MATERIALMIRROR);
+		break;
+	case MATERIALGLOSSY:
+		render->setMaterial(MATERIALGLOSSY);
+		break;
+	}
+	render->setObjects(objects);
+}
+
+void createMaterialMenus() {
+	int menu, sceneSubMenu;
+
+	sceneSubMenu = glutCreateMenu(processSceneMenuEvents);
+	glutAddMenuEntry("sphere colume", SCENESPHERECOLUMN);
+	glutAddMenuEntry("stacks", SCENESTACKS);
+	glutAddMenuEntry("table chair", SCENETABLECHAIR);
+
+	menu = glutCreateMenu(processMenuEvents);
+	glutAddMenuEntry("diffuse", MATERIALDIFFUSE);
+	glutAddMenuEntry("mirror", MATERIALMIRROR);
+	glutAddMenuEntry("glossy", MATERIALGLOSSY);
+
+	glutAddSubMenu("scene", sceneSubMenu);
+	glutAttachMenu(GLUT_RIGHT_BUTTON);
+}
+
+void doPickObject(int x, int y) {
+	float t;
+	Vector origin = Vector(eye);
+	Matrix tmpMatrix = render->getModelViewProjection().inverse();
+	Vector ray = render->getPathTracer()->getEyeRay(tmpMatrix, (float(x) / 512.0) * 2.0 - 1.0, 1.0 - (float(y) / 512.0) * 2.0);
+	Hitable* selectedObject = render->getSelectedObject();
+	if (NULL != selectedObject) {
+		Vector minBounds = selectedObject->getMinCorner();
+		Vector maxBounds = selectedObject->getMaxCorner();
+		Cube* tmpCube = new Cube();
+		t = tmpCube->dointersect(origin, ray, minBounds, maxBounds);
+		if (t < FLT_MAX) {
+			Vector hit = origin.add(ray.multiply(t));
+			return;
+		}
+	}
+	t = FLT_MAX;
+	render->setSelectedObject(NULL);
+	for (int i = 0; i < objects.size(); i++) {
+		float objectT = objects[i]->intersect(origin, ray);
+		if (objectT < t) {
+			t = objectT;
+			render->setSelectedObject(objects[i]);
+		}
+	}
+}
+
+void processMousePickEvent(int button, int state, int x, int y) {
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+		if ((x >= 0 && x < 512) && (y >= 0 && y < 512)) {
+			doPickObject(x, y);
+		}
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -123,12 +215,14 @@ int main(int argc, char* argv[]) {
 	glutCreateWindow("ray tracing");
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(RenderScene);
+	glutMouseFunc(processMousePickEvent);
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
 		return 1;
 	}
 	init();
+	createMaterialMenus();
 	glutMainLoop();
 	return 0;
 }

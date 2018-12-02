@@ -118,7 +118,7 @@ float Cube::dointersect(const Vector& origin, const Vector& ray, const Vector& c
 	Vector t1 = Vector().min(tMin, tMax);
 	Vector t2 = Vector().max(tMin, tMax);
 	float tNear = t1.max();
-	float tFar  = t2.max();
+	float tFar  = t2.min();
 	if (tNear > 0 && tNear < tFar) {
 		return tNear;
 	}

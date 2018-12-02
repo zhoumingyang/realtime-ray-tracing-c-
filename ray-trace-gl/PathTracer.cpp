@@ -54,8 +54,8 @@ void PathTracer::setObjects(vector<Hitable*> _objects) {
 	if (tracerProgram != NULL) {
 		glDeleteProgram(tracerProgram);
 	}
-	std::string tmpShaderSrc = makeTracerFragmentSource(objects);
-	tracerProgram = compileShader(tracerVertexSource, makeTracerFragmentSource(objects));
+	//std::string tmpShaderSrc = makeTracerFragmentSource(objects);
+	tracerProgram = compileShader(tracerVertexSource, makeTracerFragmentSource(objects, material));
 	tracerVertexAttribute = glGetAttribLocation(tracerProgram, "vertex");
 	glVertexAttribPointer(tracerVertexAttribute, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(tracerVertexAttribute);
@@ -210,4 +210,14 @@ GLuint PathTracer::getTracerVertexAttribute() const {
 
 int PathTracer::getSampleCount() const {
 	return sampleCount;
+}
+
+void PathTracer::setMaterial(int _material) {
+	if (material != _material) {
+		material = _material;
+	}
+}
+
+int PathTracer::getMaterial() const {
+	return material;
 }

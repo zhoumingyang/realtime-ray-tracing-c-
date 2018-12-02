@@ -39,7 +39,9 @@ Renderer::Renderer() {
 	if (err != GL_NO_ERROR) {
 		std::cout << "something wrong in renderer init: " << err << endl;
 	}
+	material = 1;
 	pathTracer = new PathTracer();
+	pathTracer->setMaterial(material);
 }
 
 Renderer::~Renderer() {
@@ -56,7 +58,6 @@ Renderer::~Renderer() {
 
 void Renderer::setObjects(vector<Hitable*> _objects) {
 	objects = _objects;
-	selectedObject = _objects[1];
 	pathTracer->setObjects(_objects);
 }
 
@@ -140,10 +141,27 @@ void Renderer::setModelViewProjection(const Matrix& mvp) {
 	modelviewProjection = mvp;
 }
 
-Hitable Renderer::getSelectedObject() const {
-	return *selectedObject;
+Hitable* Renderer::getSelectedObject() const {
+	return selectedObject;
 }
 
-void Renderer::setSelectedObject(Hitable& object) {
-	selectedObject = &object;
+void Renderer::setSelectedObject(Hitable* object) {
+	selectedObject = object;
+}
+
+void Renderer::setMaterial(int _material) {
+	if (material != _material) {
+		material = _material;
+	}
+	if (NULL != pathTracer) {
+		pathTracer->setMaterial(material);
+	}
+}
+
+int Renderer::getMaterial() const {
+	return material;
+}
+
+PathTracer* Renderer::getPathTracer() const {
+	return pathTracer;
 }
