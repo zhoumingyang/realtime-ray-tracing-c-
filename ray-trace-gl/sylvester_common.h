@@ -1,0 +1,7 @@
+#pragma once
+#ifndef SYLVESTEER_COMMON_H
+#define SYLVESTEER_COMMON_H
+#define SYLVESTER_RRECISION 1e-6
+#define M_PI 3.1415926
+#endif // !SYLVESTEER_COMMON_H
+
