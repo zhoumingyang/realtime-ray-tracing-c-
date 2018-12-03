@@ -212,6 +212,10 @@ int PathTracer::getSampleCount() const {
 	return sampleCount;
 }
 
+void PathTracer::setSampleCount(int _sampleCount) {
+	sampleCount = _sampleCount;
+}
+
 void PathTracer::setMaterial(int _material) {
 	if (material != _material) {
 		material = _material;

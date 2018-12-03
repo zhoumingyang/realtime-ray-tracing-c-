@@ -44,6 +44,7 @@ public:
 	GLuint getRenderVertexAttribute() const;
 	GLuint getTracerVertexAttribute() const;
 	int getSampleCount() const;
+	void setSampleCount(int _sampleCount);
 	void setMaterial(int _material);
 	int getMaterial() const;
 };

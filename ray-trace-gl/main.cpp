@@ -16,15 +16,21 @@
 #define MATERIALMIRROR 2
 #define MATERIALGLOSSY 3
 #define SCENECHANGE 4
+
 #define SCENESPHERECOLUMN 1
 #define SCENESTACKS 2
 #define SCENETABLECHAIR 3
+#define SCENESPHERECUBE 4
 
 int material = MATERIALDIFFUSE;
 vector<Hitable*> objects;
 Vector eye(0, 0, 2.5);
 Renderer* render;
 DWORD now, start;
+Vector movementNormal;
+float movementDistance;
+bool moving = false;
+Vector originalHit;
 
 Matrix makeLookAt(float ex, float ey, float ez,
 	float cx, float cy, float cz,
@@ -130,6 +136,9 @@ void processSceneMenuEvents(int option) {
 	case SCENETABLECHAIR:
 		makeTableAndChair(objects);
 		break;
+	case SCENESPHERECUBE:
+		makeSphereAndCube(objects);
+		break;
 	default:
 		makeSphereColumn(objects);
 		break;
@@ -162,6 +171,7 @@ void createMaterialMenus() {
 	glutAddMenuEntry("sphere colume", SCENESPHERECOLUMN);
 	glutAddMenuEntry("stacks", SCENESTACKS);
 	glutAddMenuEntry("table chair", SCENETABLECHAIR);
+	glutAddMenuEntry("sphere cube", SCENESPHERECUBE);
 
 	menu = glutCreateMenu(processMenuEvents);
 	glutAddMenuEntry("diffuse", MATERIALDIFFUSE);
@@ -185,6 +195,27 @@ void doPickObject(int x, int y) {
 		t = tmpCube->dointersect(origin, ray, minBounds, maxBounds);
 		if (t < FLT_MAX) {
 			Vector hit = origin.add(ray.multiply(t));
+			if (abs(hit.x() - minBounds.x()) < 0.001) {
+				movementNormal = Vector(-1.0, 0.0, 0.0);
+			}
+			else if (abs(hit.x() - maxBounds.x()) < 0.001) {
+				movementNormal = Vector(1.0, 0.0, 0.0);
+			}
+			else if (abs(hit.y() - minBounds.y()) < 0.001) {
+				movementNormal = Vector(0.0, -1.0, 0.0);
+			}
+			else if (abs(hit.y() - maxBounds.y()) < 0.001) {
+				movementNormal = Vector(0.0, 1.0, 0.0);
+			}
+			else if (abs(hit.z() - minBounds.z() < 0.001)) {
+				movementNormal = Vector(0.0, 0.0, -1.0);
+			}
+			else {
+				movementNormal = Vector(0.0, 0.0, 1.0);
+			}
+			movementDistance = movementNormal.dot(hit);
+			originalHit = Vector(hit);
+			moving = true;
 			return;
 		}
 	}
@@ -205,6 +236,31 @@ void processMousePickEvent(int button, int state, int x, int y) {
 			doPickObject(x, y);
 		}
 	}
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+		if (moving) {
+			Vector origin = Vector(eye);
+			Matrix tmpMatrix = render->getModelViewProjection().inverse();
+			Vector ray = render->getPathTracer()->getEyeRay(tmpMatrix, (float(x) / 512.0) * 2.0 - 1.0, 1.0 - (float(y) / 512.0) * 2.0);
+			float t = (movementDistance - movementNormal.dot(origin)) / movementNormal.dot(ray);
+			Vector hit = origin.add(ray.multiply(t));
+			render->getSelectedObject()->temporaryTranslate(Vector(0.0, 0.0, 0.0));
+			render->getSelectedObject()->translate(hit.substract(originalHit));
+			moving = false;
+		}
+	}
+}
+
+void processmouseMoveEvent(int x, int y) {
+	if (moving) {
+		Vector origin = Vector(eye);
+		Matrix tmpMatrix = render->getModelViewProjection().inverse();
+		Vector ray = render->getPathTracer()->getEyeRay(tmpMatrix, (float(x) / 512.0) * 2.0 - 1.0, 1.0 - (float(y) / 512.0) * 2.0);
+		float t = (movementDistance - movementNormal.dot(origin)) / movementNormal.dot(ray);
+		Vector hit = origin.add(ray.multiply(t));
+		Vector tmpTranslate = hit.substract(originalHit);
+		render->getSelectedObject()->temporaryTranslate(tmpTranslate);
+		render->getPathTracer()->setSampleCount(0);
+	}
 }
 
 int main(int argc, char* argv[]) {
@@ -216,6 +272,7 @@ int main(int argc, char* argv[]) {
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(RenderScene);
 	glutMouseFunc(processMousePickEvent);
+	glutMotionFunc(processmouseMoveEvent);
 	GLenum err = glewInit();
 	if (GLEW_OK != err) {
 		fprintf(stderr, "Error: %s\n", glewGetErrorString(err));

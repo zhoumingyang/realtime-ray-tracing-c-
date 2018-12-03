@@ -56,3 +56,8 @@ void makeTableAndChair(vector<Hitable*>& objects) {
 	// sphere on table
 	objects.push_back(new Sphere(Vector(-0.1, -0.05, 0), 0.25, to_string(nextObjectId++)));
 }
+
+void makeSphereAndCube(vector<Hitable*>& objects) {
+	objects.push_back(new Cube(Vector(-0.25, -1, -0.25), Vector(0.25, -0.75, 0.25), to_string(nextObjectId++)));
+	objects.push_back(new Sphere(Vector(0, -0.75, 0), 0.25, to_string(nextObjectId++)));
+}
