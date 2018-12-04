@@ -18,6 +18,7 @@ private:
 	int sampleCount;
 	vector<Hitable*> objects;
 	void setUniforms();
+	Vector eye;
 public:
 	struct Uniforms {
 		Vector eye;
@@ -47,5 +48,7 @@ public:
 	void setSampleCount(int _sampleCount);
 	void setMaterial(int _material);
 	int getMaterial() const;
+	Vector getEye() const;
+	void setEye(const Vector& eye);
 };
 #endif // !PATHTRACER_H

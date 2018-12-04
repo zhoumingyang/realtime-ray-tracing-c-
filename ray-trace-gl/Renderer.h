@@ -20,6 +20,7 @@ private:
 	Hitable* selectedObject;
 	void setUniforms();
 	int material;
+	Vector eye;
 public:
 	struct Uniforms {
 		Vector cubeMin;
@@ -43,5 +44,7 @@ public:
 	void setMaterial(int _material);
 	int getMaterial() const;
 	PathTracer* getPathTracer() const;
+	Vector getEye() const;
+	void setEye(const Vector& _eye);
 };
 #endif // !RENDERER_H

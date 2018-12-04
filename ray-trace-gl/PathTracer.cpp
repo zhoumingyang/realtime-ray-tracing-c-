@@ -40,6 +40,7 @@ PathTracer::PathTracer() {
 	if (err2 != GL_NO_ERROR) {
 		std::cout << "something wrong in path trace init 2: "<< err2 << endl;
 	}
+	eye = Vector(0, 0, 2.5);
 }
 
 PathTracer::~PathTracer() {
@@ -87,7 +88,7 @@ void PathTracer::setObjects(Hitable* _objects[], int n) {
 Vector PathTracer::getEyeRay(const Matrix& matrix, const float& x, const float& y) {
 	vector<float> tmp = { x, y, 0, 1 };
 	Vector re = matrix.multiply(Vector(tmp)).divideByW();
-	return Vector(re.x(), re.y(), re.z()).substract(Vector(0, 0, 2.5));
+	return Vector(re.x(), re.y(), re.z()).substract(eye);
 }
 
 void PathTracer::setUniforms() {
@@ -130,7 +131,7 @@ void PathTracer::setUniforms() {
 }
 
 void PathTracer::update(const Matrix& matrix, float timeSinceStart) {
-	uniforms.eye = Vector(0, 0, 2.5);
+	uniforms.eye = eye;
 	uniforms.glossiness = 0.6;
 	uniforms.ray00 = getEyeRay(matrix, -1.0, -1.0);
 	uniforms.ray01 = getEyeRay(matrix, -1.0, 1.0);
@@ -224,4 +225,12 @@ void PathTracer::setMaterial(int _material) {
 
 int PathTracer::getMaterial() const {
 	return material;
+}
+
+Vector PathTracer::getEye() const {
+	return eye;
+}
+
+void PathTracer::setEye(const Vector& _eye) {
+	eye = _eye;
 }

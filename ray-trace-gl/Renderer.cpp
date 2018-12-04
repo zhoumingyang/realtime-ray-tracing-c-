@@ -40,6 +40,7 @@ Renderer::Renderer() {
 		std::cout << "something wrong in renderer init: " << err << endl;
 	}
 	material = 1;
+	eye = Vector(0, 0, 2.5);
 	pathTracer = new PathTracer();
 	pathTracer->setMaterial(material);
 }
@@ -69,6 +70,7 @@ void Renderer::setObjects(Hitable* _objects[], int n) {
 }
 
 void Renderer::update(const Matrix& _modelviewProjection, float timeSinceStart) {
+	pathTracer->setEye(eye);
 	Vector trans = Vector(drand48() * 2.0 - 1.0, drand48() * 2.0 - 1.0, 0);
 	Vector tmpTrans = trans.multiply(1.0 / 512.0);
 	Matrix jitter = Matrix().translation(tmpTrans);
@@ -164,4 +166,12 @@ int Renderer::getMaterial() const {
 
 PathTracer* Renderer::getPathTracer() const {
 	return pathTracer;
+}
+
+Vector Renderer::getEye() const {
+	return eye;
+}
+
+void Renderer::setEye(const Vector& _eye) {
+	eye = _eye;
 }

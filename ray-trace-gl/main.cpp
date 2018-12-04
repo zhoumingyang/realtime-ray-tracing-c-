@@ -31,6 +31,11 @@ Vector movementNormal;
 float movementDistance;
 bool moving = false;
 Vector originalHit;
+float angleX = 0.0;
+float angleY = 0.0;
+float zoomZ = 2.5;
+bool mouseDown = false;
+float oldX, oldY;
 
 Matrix makeLookAt(float ex, float ey, float ez,
 	float cx, float cy, float cz,
@@ -107,6 +112,11 @@ void RenderScene() {
 		cout << "some thing wrong in render scene: " << err << endl;
 	}
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	float eyex = zoomZ * sin(angleY) * cos(angleX);
+	float eyey = zoomZ * sin(angleX);
+	float eyez = zoomZ * cos(angleY) * cos(angleX);
+	eye = Vector(eyex, eyey, eyez);
+	render->setEye(eye);
 	Matrix modelview = makeLookAt(eye.x(), eye.y(), eye.z(), 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 	Matrix projection = makePerspective(55.0, 1.0, 0.1, 100.0);
 	Matrix modelviewProjection = projection.multiply(modelview);
@@ -182,7 +192,7 @@ void createMaterialMenus() {
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-void doPickObject(int x, int y) {
+bool doPickObject(int x, int y) {
 	float t;
 	Vector origin = Vector(eye);
 	Matrix tmpMatrix = render->getModelViewProjection().inverse();
@@ -216,7 +226,7 @@ void doPickObject(int x, int y) {
 			movementDistance = movementNormal.dot(hit);
 			originalHit = Vector(hit);
 			moving = true;
-			return;
+			return true;
 		}
 	}
 	t = FLT_MAX;
@@ -228,15 +238,19 @@ void doPickObject(int x, int y) {
 			render->setSelectedObject(objects[i]);
 		}
 	}
+	return (t < FLT_MAX);
 }
 
 void processMousePickEvent(int button, int state, int x, int y) {
+	oldX = x;
+	oldY = y;
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
 		if ((x >= 0 && x < 512) && (y >= 0 && y < 512)) {
-			doPickObject(x, y);
+			mouseDown = !doPickObject(x, y);
 		}
 	}
 	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP) {
+		mouseDown = false;
 		if (moving) {
 			Vector origin = Vector(eye);
 			Matrix tmpMatrix = render->getModelViewProjection().inverse();
@@ -251,15 +265,29 @@ void processMousePickEvent(int button, int state, int x, int y) {
 }
 
 void processmouseMoveEvent(int x, int y) {
-	if (moving) {
-		Vector origin = Vector(eye);
-		Matrix tmpMatrix = render->getModelViewProjection().inverse();
-		Vector ray = render->getPathTracer()->getEyeRay(tmpMatrix, (float(x) / 512.0) * 2.0 - 1.0, 1.0 - (float(y) / 512.0) * 2.0);
-		float t = (movementDistance - movementNormal.dot(origin)) / movementNormal.dot(ray);
-		Vector hit = origin.add(ray.multiply(t));
-		Vector tmpTranslate = hit.substract(originalHit);
-		render->getSelectedObject()->temporaryTranslate(tmpTranslate);
+	if (mouseDown) {
+		angleY -= (x - oldX) * 0.01;
+		angleX += (y - oldY) * 0.01;
+
+		angleX = max(angleX, -M_PI / 2 + 0.01);
+		angleX = min(angleX, M_PI / 2 - 0.01);
+
 		render->getPathTracer()->setSampleCount(0);
+
+		oldX = x;
+		oldY = y;
+	}
+	else {
+		if (moving) {
+			Vector origin = Vector(eye);
+			Matrix tmpMatrix = render->getModelViewProjection().inverse();
+			Vector ray = render->getPathTracer()->getEyeRay(tmpMatrix, (float(x) / 512.0) * 2.0 - 1.0, 1.0 - (float(y) / 512.0) * 2.0);
+			float t = (movementDistance - movementNormal.dot(origin)) / movementNormal.dot(ray);
+			Vector hit = origin.add(ray.multiply(t));
+			Vector tmpTranslate = hit.substract(originalHit);
+			render->getSelectedObject()->temporaryTranslate(tmpTranslate);
+			render->getPathTracer()->setSampleCount(0);
+		}
 	}
 }
 
